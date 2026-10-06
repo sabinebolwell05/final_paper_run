@@ -11,10 +11,9 @@ venv/
 config_local.py
 venv
 
-# Large astronomy data
-
-
-# Generated files
-
+#data
+data/*
+!data/true_sources_final.csv
+!data/unconfirmed.csvß
 # macOS
 .DS_Store
