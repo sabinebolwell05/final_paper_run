@@ -76,46 +76,37 @@ subset = DATA_SUBSETS[DATA_SUBSET]
 run_name = f"table{PAPER_TABLE}_{DATA_SUBSET}"
 
 
-def define_input(
-    define_io,
-    define_fit,
-    define_output,
-    define_plots,
-    define_intpol,
-):
-    """
-    Define the BASTA input for the selected paper table and data subset.
-    """
+import os
 
-    xmlfilename = f"input_{run_name}.xml"
+def define_input(define_io, define_fit, define_output,
+                 define_plots, define_intpol):
 
-    # -------------------------------------------------------------------------
-    # Input/output files
-    # -------------------------------------------------------------------------
+    table = os.environ["BASTA_TABLE"]
+    subset = os.environ["BASTA_SUBSET"].lower()
 
-    define_io["gridfile"] = os.path.join(
-        "/Users/z5214708/BASTA/grids",
-        "BaSTI_iso2018.hdf5",
+    table_config = {
+        "1": ("raw", False),             # numax only
+        "2": ("raw_dnu", True),          # numax + dnu
+        "3": ("corrected", False),       # corrected numax only
+        "4": ("corrected_dnu", True),   # corrected numax + dnu
+    }
+
+    stem, use_dnu = table_config[table]
+
+    use_jhk = subset in {"a", "b"}
+    phase_known = subset in {"a", "c"}
+
+    xmlfilename = f"input_table{table}_{subset}.xml"
+
+    define_io["gridfile"] = (
+        "/Users/z5214708/BASTA/grids/BaSTI_iso2018.hdf5"
     )
 
-    define_io["outputpath"] = os.path.join(
-        "output",
-        run_name,
-    )
+    define_io["outputpath"] = f"output/table{table}_{subset}"
 
-    dnu_suffix = "_dnu" if paper["use_dnu"] else ""
+    define_io["asciifile"] = f"data/{stem}_{subset}.ascii"
 
-    ascii_filename = (
-        f"{paper['numax_version']}"
-        f"{dnu_suffix}_"
-        f"{DATA_SUBSET}.ascii"
-    )
-
-    define_io["asciifile"] = os.path.join(
-        "data",
-        ascii_filename,
-    )
-
+    define_io["missingval"] = -999.999
 
     define_io["params"] = (
         "starid",
@@ -140,61 +131,34 @@ def define_input(
         "phase",
     )
 
-    # Missing numeric values in the ASCII files should be written as -999.999.
-    define_io["missingval"] = -999.999
+    fitparams = ["numax", "Teff", "FeH"]
 
-    # -------------------------------------------------------------------------
-    # Fitting parameters
-    # -------------------------------------------------------------------------
-
-    fitparams = [
-        "numax",
-        "Teff",
-        "FeH"
-    ]
-
-    if paper["use_dnu"]:
+    if use_dnu:
         fitparams.insert(1, "dnuAsf")
 
-    if subset["phase_known"]:
+    if phase_known:
         fitparams.append("phase")
 
     define_fit["fitparams"] = tuple(fitparams)
 
-    define_fit["priors"] = {
-        "IMF": "salpeter1955",
-    }
+    define_fit["priors"] = {"IMF": "salpeter1955"}
+    define_fit["odea"] = (0.2, 1, 0.3, 0)
+    define_fit["solarmodel"] = True
+    define_fit["dustframe"] = "icrs"
 
-    define_fit["odea"] = (
-        0.2,  # overshooting
-        1,    # diffusion
-        0.3,  # mass loss
-        0,    # alpha enhancement
-    )
-
-    # -------------------------------------------------------------------------
-    # Photometric filters
-    # -------------------------------------------------------------------------
-
-    filters = ("G_GAIA",)
-
-    if subset["use_jhk"]:
-        filters += (
+    if use_jhk:
+        define_fit["filters"] = (
+            "G_GAIA",
             "Mj_2MASS",
             "Mh_2MASS",
             "Mk_2MASS",
         )
-
-    define_fit["filters"] = filters
-    define_fit["dustframe"] = "icrs"
-    define_fit["solarmodel"] = True
-
-    # -------------------------------------------------------------------------
-    # Output
-    # -------------------------------------------------------------------------
+    else:
+        define_fit["filters"] = ("G_GAIA",)
 
     outparams = [
         "Teff",
+        "FeH",
         "numax",
         "logg",
         "radPhot",
@@ -203,22 +167,16 @@ def define_input(
         "distance",
     ]
 
-    if paper["use_dnu"]:
-        outparams.insert(2, "dnuAsf")
+    if use_dnu:
+        outparams.insert(3, "dnuAsf")
 
     define_output["outparams"] = tuple(outparams)
     define_output["outputfile"] = "results.ascii"
     define_output["optionaloutputs"] = False
 
-
-    # -------------------------------------------------------------------------
-    # Plots
-    # -------------------------------------------------------------------------
-
     define_plots["cornerplots"] = define_output["outparams"]
     define_plots["kielplots"] = True
     define_plots["freqplots"] = False
-
 
     return (
         xmlfilename,
