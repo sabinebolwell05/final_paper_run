@@ -175,7 +175,7 @@ def define_input(define_io, define_fit, define_output,
     define_output["optionaloutputs"] = False
 
     define_plots["cornerplots"] = define_output["outparams"]
-    define_plots["kielplots"] = True
+    define_plots["kielplots"] = False
     define_plots["freqplots"] = False
 
     return (
