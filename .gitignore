@@ -15,5 +15,9 @@ venv
 data/*
 !data/true_sources_final.csv
 !data/unconfirmed.csv
+
+#figures
+figures/*
+
 # macOS
 .DS_Store
