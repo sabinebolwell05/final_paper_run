@@ -15,6 +15,7 @@ venv
 data/*
 !data/true_sources_final.csv
 !data/unconfirmed.csv
+!data/true_sources_w_duplicates.csv
 
 #figures
 figures/*
