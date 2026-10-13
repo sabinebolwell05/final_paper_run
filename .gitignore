@@ -20,6 +20,7 @@ data/*
 
 #figures
 figures/*
+input_figures/*
 
 # macOS
 .DS_Store
