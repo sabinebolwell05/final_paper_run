@@ -16,6 +16,7 @@ data/*
 !data/true_sources_final.csv
 !data/unconfirmed.csv
 !data/true_sources_w_duplicates.csv
+!data/true_sources_basta_output_final.csv
 
 #figures
 figures/*
